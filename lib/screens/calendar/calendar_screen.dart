@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../providers/sales_provider.dart';
 import '../../models/sale.dart';
-import '../../utils/status_enums.dart';
 import '../../utils/colors.dart';
 import '../../constants/app_styles.dart';
 import '../../widgets/status_indicator.dart';

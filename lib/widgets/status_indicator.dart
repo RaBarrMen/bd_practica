@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/status_enums.dart';
-
+import '../models/sale.dart';
 class StatusIndicator extends StatelessWidget {
   final SaleStatus status;
   final double size;
@@ -17,7 +16,7 @@ class StatusIndicator extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: status.dotColor,
+        color: status.color,
         shape: BoxShape.circle,
         border: Border.all(
           color: status.color,

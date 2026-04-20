@@ -26,7 +26,6 @@ class AppStrings {
   static const String success = 'Éxito';
   static const String noData = 'Sin datos';
   static const String emptyList = 'La lista está vacía';
-  static const String confirmDelete = '¿Estás seguro de que deseas eliminar?';
 
   // Filtros
   static const String all = 'Todos';

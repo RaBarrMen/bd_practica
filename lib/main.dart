@@ -39,13 +39,13 @@ class MyApp extends StatelessWidget {
             elevation: 0,
           ),
           scaffoldBackgroundColor: AppColors.backgroundColor,
-          cardTheme: CardTheme(
+          /*cardTheme: const CardTheme(
             color: AppColors.cardColor,
             elevation: AppStyles.elevationSmall,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
             ),
-          ),
+          ),*/
           floatingActionButtonTheme: const FloatingActionButtonThemeData(
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.white,

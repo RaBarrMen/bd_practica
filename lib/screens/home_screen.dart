@@ -5,10 +5,12 @@ import '../providers/sales_provider.dart';
 import '../providers/cart_provider.dart';
 import '../constants/app_styles.dart';
 import '../utils/colors.dart';
-import '../utils/status_enums.dart';
+import '../models/sale.dart';
 import 'calendar/calendar_screen.dart';
 import 'sales/sales_list_screen.dart';
 import 'cart/cart_screen.dart';
+import 'sales/create_sale_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -20,10 +22,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    SalesListScreen(),
-    CalendarScreen(),
-  ];
+  final List<Widget> _screens = const [SalesListScreen(), CalendarScreen()];
 
   @override
   void initState() {
@@ -105,9 +104,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+            floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/create-sale');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CreateSaleScreen(),
+            ),
+          );
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),

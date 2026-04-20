@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/sale.dart';
 import '../../providers/sales_provider.dart';
-import '../../utils/status_enums.dart';
+import '../../models/sale.dart';
 import '../../utils/colors.dart';
 import '../../constants/app_styles.dart';
 import '../../widgets/status_badge.dart';

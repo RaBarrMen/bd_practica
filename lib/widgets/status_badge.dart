@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/status_enums.dart';
+import '../models/sale.dart';
 import '../constants/app_styles.dart';
 
 class StatusBadge extends StatelessWidget {
