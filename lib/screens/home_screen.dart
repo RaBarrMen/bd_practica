@@ -11,7 +11,6 @@ import 'sales/sales_list_screen.dart';
 import 'cart/cart_screen.dart';
 import 'sales/create_sale_screen.dart';
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -37,10 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Ventas & Servicios',
-          style: AppStyles.headlineSmall,
-        ),
+        title: const Text('Ventas & Servicios', style: AppStyles.headlineSmall),
         backgroundColor: AppColors.primary,
         elevation: 0,
         actions: [
@@ -94,24 +90,24 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Listado',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Listado'),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_month),
             label: 'Calendario',
           ),
         ],
       ),
-            floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => CreateSaleScreen(),
-            ),
+            MaterialPageRoute(builder: (_) => const CreateSaleScreen()),
           );
+
+          // Si volvemos de crear venta, recargar lista
+          if (result == true && mounted) {
+            context.read<SalesProvider>().loadSales();
+          }
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
