@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
 import '../models/sale.dart';
 import '../models/sale_detail.dart';
+import '../services/database_service.dart';
 
 class SalesProvider extends ChangeNotifier {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final DatabaseService _databaseService = DatabaseService();
 
   List<Sale> _sales = [];
   List<Sale> _filteredSales = [];
@@ -26,7 +26,7 @@ class SalesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final data = await _dbHelper.query('sales', orderBy: 'sale_date DESC');
+      final data = await _databaseService.getSales();
       _sales = data.map((map) => Sale.fromMap(map)).toList();
       _filteredSales = [];
       
@@ -46,11 +46,7 @@ class SalesProvider extends ChangeNotifier {
   // Cargar detalles de una venta específica
   Future<void> _loadSaleDetails(int saleId) async {
     try {
-      final data = await _dbHelper.query(
-        'sale_details',
-        where: 'sale_id = ?',
-        whereArgs: [saleId],
-      );
+      final data = await _databaseService.getSaleDetails(saleId);
       _saleDetails[saleId] = data.map((map) => SaleDetail.fromMap(map)).toList();
     } catch (e) {
       print('Error al cargar detalles de venta: $e');
@@ -80,8 +76,9 @@ class SalesProvider extends ChangeNotifier {
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
 
-    return sales.where((sale) {
-      return sale.saleDate.isAfter(startOfDay) && sale.saleDate.isBefore(endOfDay);
+    return _sales.where((sale) {
+      return !sale.saleDate.isBefore(startOfDay) &&
+          !sale.saleDate.isAfter(endOfDay);
     }).toList();
   }
 
@@ -102,6 +99,8 @@ class SalesProvider extends ChangeNotifier {
     String? clientPhone,
     String? clientEmail,
     String? notes,
+    double totalAmount = 0.0,
+    SaleStatus initialStatus = SaleStatus.pending,
     bool reminderEnabled = true,
   }) async {
     try {
@@ -113,19 +112,22 @@ class SalesProvider extends ChangeNotifier {
         'client_phone': clientPhone,
         'client_email': clientEmail,
         'sale_type': saleType.toShortString(),
-        'status': 'pending',
-        'total_amount': 0.0,
+        'status': initialStatus.toShortString(),
+        'total_amount': totalAmount,
         'notes': notes,
         'sale_date': saleDate.toIso8601String(),
+        'completion_date': initialStatus == SaleStatus.completed
+            ? DateTime.now().toIso8601String()
+            : null,
         'reminder_enabled': reminderEnabled ? 1 : 0,
         'reminder_date': reminderEnabled 
-            ? saleDate.subtract(Duration(days: 2)).toIso8601String()
+            ? saleDate.subtract(const Duration(days: 2)).toIso8601String()
             : null,
         'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      final saleId = await _dbHelper.insert('sales', newSale);
+      final saleId = await _databaseService.createSale(newSale);
       await loadSales();
       
       return getSaleById(saleId);
@@ -156,7 +158,7 @@ class SalesProvider extends ChangeNotifier {
         'created_at': DateTime.now().toIso8601String(),
       };
 
-      await _dbHelper.insert('sale_details', detail);
+      await _databaseService.createSaleDetail(detail);
 
       // Actualizar total de la venta
       await _updateSaleTotal(saleId);
@@ -175,25 +177,19 @@ class SalesProvider extends ChangeNotifier {
   // Actualizar total de la venta
   Future<void> _updateSaleTotal(int saleId) async {
     try {
-      final details = await _dbHelper.query(
-        'sale_details',
-        where: 'sale_id = ?',
-        whereArgs: [saleId],
-      );
+      final details = await _databaseService.getSaleDetails(saleId);
 
       double total = 0;
       for (var detail in details) {
         total += (detail['subtotal'] as num).toDouble();
       }
 
-      await _dbHelper.update(
-        'sales',
+      await _databaseService.updateSale(
+        saleId,
         {
           'total_amount': total,
           'updated_at': DateTime.now().toIso8601String(),
         },
-        where: 'id = ?',
-        whereArgs: [saleId],
       );
     } catch (e) {
       print('Error al actualizar total: $e');
@@ -207,15 +203,13 @@ class SalesProvider extends ChangeNotifier {
           ? DateTime.now()
           : null;
 
-      await _dbHelper.update(
-        'sales',
+      await _databaseService.updateSale(
+        saleId,
         {
           'status': newStatus.toShortString(),
           'completion_date': completionDate?.toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         },
-        where: 'id = ?',
-        whereArgs: [saleId],
       );
 
       await loadSales();
@@ -231,11 +225,7 @@ class SalesProvider extends ChangeNotifier {
   // Eliminar detalle de venta
   Future<bool> removeSaleDetail(int detailId, int saleId) async {
     try {
-      await _dbHelper.delete(
-        'sale_details',
-        where: 'id = ?',
-        whereArgs: [detailId],
-      );
+      await _databaseService.deleteSaleDetail(detailId);
 
       await _updateSaleTotal(saleId);
       await _loadSaleDetails(saleId);
@@ -252,11 +242,7 @@ class SalesProvider extends ChangeNotifier {
   // Eliminar venta
   Future<bool> deleteSale(int saleId) async {
     try {
-      await _dbHelper.delete(
-        'sales',
-        where: 'id = ?',
-        whereArgs: [saleId],
-      );
+      await _databaseService.deleteSale(saleId);
 
       await loadSales();
       return true;

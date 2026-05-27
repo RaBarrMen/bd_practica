@@ -61,6 +61,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
 
       // Obtener el provider
       final salesProvider = Provider.of<SalesProvider>(context, listen: false);
+      final totalAmount = double.tryParse(_totalAmountController.text) ?? 0;
 
       // Mostrar loading
       showDialog(
@@ -82,6 +83,8 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
               ? null
               : _clientEmailController.text,
           notes: _notesController.text.isEmpty ? null : _notesController.text,
+          totalAmount: totalAmount,
+          initialStatus: _selectedStatus ?? SaleStatus.pending,
           reminderEnabled: _reminderEnabled,
         );
 
