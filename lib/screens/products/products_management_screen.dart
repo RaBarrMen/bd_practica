@@ -249,7 +249,7 @@ class _ProductsManagementScreenState extends State<ProductsManagementScreen> {
                     ),
                   const SizedBox(height: AppStyles.paddingXSmall),
                   Text(
-                    'Precio: \$${product.price.toStringAsFixed(2)} • Stock: ${product.stock} ${product.unit ?? 'pcs'}',
+                    'Precio: \$${product.price.toStringAsFixed(2)} • Stock: ${product.stock} ${product.unit ?? 'uds'}',
                     style: AppStyles.bodySmall,
                   ),
                 ],

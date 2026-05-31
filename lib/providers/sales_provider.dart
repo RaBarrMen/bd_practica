@@ -31,7 +31,7 @@ class SalesProvider extends ChangeNotifier {
       final data = await _dbHelper.query('sales', orderBy: 'sale_date DESC');
       _sales = data.map((map) => Sale.fromMap(map)).toList();
       _filteredSales = [];
-      _saleDetails = {};
+      _saleDetails.clear();
       _productsById.clear();
       
       // Cargar detalles de cada venta
