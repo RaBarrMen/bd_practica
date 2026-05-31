@@ -5,7 +5,6 @@ import '../providers/sales_provider.dart';
 import '../providers/cart_provider.dart';
 import '../constants/app_styles.dart';
 import '../utils/colors.dart';
-import '../models/sale.dart';
 import 'calendar/calendar_screen.dart';
 import 'sales/sales_list_screen.dart';
 import 'cart/cart_screen.dart';
@@ -40,6 +39,13 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.primary,
         elevation: 0,
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/products-management');
+            },
+            icon: const Icon(Icons.inventory_2_outlined),
+            tooltip: 'Gestionar productos',
+          ),
           // Badge con contador de carrito
           Padding(
             padding: const EdgeInsets.all(AppStyles.paddingMedium),

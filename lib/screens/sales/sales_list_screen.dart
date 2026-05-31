@@ -5,7 +5,6 @@ import '../../utils/colors.dart';
 import '../../models/sale.dart';
 import '../../constants/app_styles.dart';
 import '../../widgets/status_badge.dart';
-import '../../widgets/status_indicator.dart';
 import '../../utils/date_utils.dart';
 import 'sale_detail_screen.dart';
 
@@ -96,6 +95,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
                           itemCount: salesProvider.sales.length,
                           itemBuilder: (context, index) {
                             final sale = salesProvider.sales[index];
+                            final productsSummary = salesProvider.getSaleProductsSummary(sale.id);
                             return Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: AppStyles.paddingMedium,
@@ -133,6 +133,14 @@ class _SalesListScreenState extends State<SalesListScreen> {
                                       Text(
                                         '${sale.saleType.label} - ${DateTimeUtils.formatShortDate(sale.saleDate)}',
                                         style: AppStyles.bodySmall,
+                                      ),
+                                      const SizedBox(
+                                          height: AppStyles.paddingXSmall),
+                                      Text(
+                                        'Productos: $productsSummary',
+                                        style: AppStyles.bodySmall,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(
                                           height: AppStyles.paddingXSmall),

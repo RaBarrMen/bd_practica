@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/sale.dart';
 import '../models/sale_detail.dart';
+import '../models/product.dart';
 
 class SalesProvider extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper();
@@ -9,6 +10,7 @@ class SalesProvider extends ChangeNotifier {
   List<Sale> _sales = [];
   List<Sale> _filteredSales = [];
   Map<int, List<SaleDetail>> _saleDetails = {};
+  final Map<int, Product> _productsById = {};
   bool _isLoading = false;
   String? _error;
   SaleStatus? _filterStatus;
@@ -29,6 +31,8 @@ class SalesProvider extends ChangeNotifier {
       final data = await _dbHelper.query('sales', orderBy: 'sale_date DESC');
       _sales = data.map((map) => Sale.fromMap(map)).toList();
       _filteredSales = [];
+      _saleDetails = {};
+      _productsById.clear();
       
       // Cargar detalles de cada venta
       for (var sale in _sales) {
@@ -51,7 +55,22 @@ class SalesProvider extends ChangeNotifier {
         where: 'sale_id = ?',
         whereArgs: [saleId],
       );
-      _saleDetails[saleId] = data.map((map) => SaleDetail.fromMap(map)).toList();
+      final details = data.map((map) => SaleDetail.fromMap(map)).toList();
+      _saleDetails[saleId] = details;
+
+      for (final detail in details) {
+        if (_productsById.containsKey(detail.productId)) continue;
+
+        final productMap = await _dbHelper.queryOne(
+          'products',
+          where: 'id = ?',
+          whereArgs: [detail.productId],
+        );
+
+        if (productMap != null) {
+          _productsById[detail.productId] = Product.fromMap(productMap);
+        }
+      }
     } catch (e) {
       print('Error al cargar detalles de venta: $e');
     }
@@ -60,6 +79,31 @@ class SalesProvider extends ChangeNotifier {
   // Obtener detalles de una venta
   List<SaleDetail> getSaleDetails(int saleId) {
     return _saleDetails[saleId] ?? [];
+  }
+
+  Product? getProductForDetail(SaleDetail detail) {
+    return _productsById[detail.productId];
+  }
+
+  String getSaleProductsSummary(int saleId, {int maxItems = 2}) {
+    final details = getSaleDetails(saleId);
+    if (details.isEmpty) return 'Sin artículos';
+
+    final names = <String>[];
+    for (final detail in details) {
+      final product = getProductForDetail(detail);
+      names.add(product?.name ?? 'Producto #${detail.productId}');
+    }
+
+    final uniqueNames = names.toSet().toList();
+    final preview = uniqueNames.take(maxItems).join(', ');
+    final remaining = uniqueNames.length - maxItems;
+
+    if (remaining > 0) {
+      return '$preview y $remaining más';
+    }
+
+    return preview;
   }
 
   // Filtrar por estatus
