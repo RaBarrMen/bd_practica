@@ -29,7 +29,7 @@ class SalesProvider extends ChangeNotifier {
       final data = await _dbHelper.query('sales', orderBy: 'sale_date DESC');
       _sales = data.map((map) => Sale.fromMap(map)).toList();
       _filteredSales = [];
-      
+
       // Cargar detalles de cada venta
       for (var sale in _sales) {
         await _loadSaleDetails(sale.id);
@@ -51,7 +51,9 @@ class SalesProvider extends ChangeNotifier {
         where: 'sale_id = ?',
         whereArgs: [saleId],
       );
-      _saleDetails[saleId] = data.map((map) => SaleDetail.fromMap(map)).toList();
+      _saleDetails[saleId] = data
+          .map((map) => SaleDetail.fromMap(map))
+          .toList();
     } catch (e) {
       print('Error al cargar detalles de venta: $e');
     }
@@ -62,26 +64,71 @@ class SalesProvider extends ChangeNotifier {
     return _saleDetails[saleId] ?? [];
   }
 
+  Future<List<Map<String, dynamic>>> getSaleDetailsWithProductInfo(
+    int saleId,
+  ) async {
+    return await _dbHelper.rawQuery(
+      '''
+      SELECT
+        sd.id,
+        sd.sale_id,
+        sd.product_id,
+        sd.quantity,
+        sd.unit_price,
+        sd.subtotal,
+        p.name AS product_name
+      FROM sale_details sd
+      INNER JOIN products p ON p.id = sd.product_id
+      WHERE sd.sale_id = ?
+      ORDER BY sd.created_at ASC
+      ''',
+      [saleId],
+    );
+  }
+
+  Future<String> getSaleProductsSummary(int saleId) async {
+    try {
+      final details = await getSaleDetailsWithProductInfo(saleId);
+      if (details.isEmpty) return 'Sin productos';
+
+      final names = details
+          .map((detail) => detail['product_name'] as String? ?? 'Producto')
+          .toList();
+      final maxToShow = names.length > 2 ? 2 : names.length;
+      final preview = names.take(maxToShow).join(', ');
+      final extra = names.length - maxToShow;
+
+      if (extra > 0) {
+        return '$preview +$extra más';
+      }
+      return preview;
+    } catch (e) {
+      debugPrint(
+        'Error al obtener resumen de productos para venta $saleId: $e',
+      );
+      return 'Sin productos';
+    }
+  }
+
   // Filtrar por estatus
   void filterByStatus(SaleStatus? status) {
     _filterStatus = status;
-    
+
     if (status == null) {
       _filteredSales = [];
     } else {
       _filteredSales = _sales.where((sale) => sale.status == status).toList();
     }
-    
+
     notifyListeners();
   }
 
   // Obtener ventas por fecha
   List<Sale> getSalesByDate(DateTime date) {
-    final startOfDay = DateTime(date.year, date.month, date.day);
-    final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
-
     return sales.where((sale) {
-      return sale.saleDate.isAfter(startOfDay) && sale.saleDate.isBefore(endOfDay);
+      return sale.saleDate.year == date.year &&
+          sale.saleDate.month == date.month &&
+          sale.saleDate.day == date.day;
     }).toList();
   }
 
@@ -106,7 +153,7 @@ class SalesProvider extends ChangeNotifier {
   }) async {
     try {
       final saleNumber = 'VENTA-${DateTime.now().millisecondsSinceEpoch}';
-      
+
       final newSale = {
         'sale_number': saleNumber,
         'client_name': clientName,
@@ -118,7 +165,7 @@ class SalesProvider extends ChangeNotifier {
         'notes': notes,
         'sale_date': saleDate.toIso8601String(),
         'reminder_enabled': reminderEnabled ? 1 : 0,
-        'reminder_date': reminderEnabled 
+        'reminder_date': reminderEnabled
             ? saleDate.subtract(Duration(days: 2)).toIso8601String()
             : null,
         'created_at': DateTime.now().toIso8601String(),
@@ -127,7 +174,7 @@ class SalesProvider extends ChangeNotifier {
 
       final saleId = await _dbHelper.insert('sales', newSale);
       await loadSales();
-      
+
       return getSaleById(saleId);
     } catch (e) {
       _error = 'Error al crear venta: $e';
@@ -161,7 +208,7 @@ class SalesProvider extends ChangeNotifier {
       // Actualizar total de la venta
       await _updateSaleTotal(saleId);
       await _loadSaleDetails(saleId);
-      
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -188,10 +235,7 @@ class SalesProvider extends ChangeNotifier {
 
       await _dbHelper.update(
         'sales',
-        {
-          'total_amount': total,
-          'updated_at': DateTime.now().toIso8601String(),
-        },
+        {'total_amount': total, 'updated_at': DateTime.now().toIso8601String()},
         where: 'id = ?',
         whereArgs: [saleId],
       );
@@ -203,7 +247,7 @@ class SalesProvider extends ChangeNotifier {
   // Actualizar estatus de la venta
   Future<bool> updateSaleStatus(int saleId, SaleStatus newStatus) async {
     try {
-      final completionDate = newStatus == SaleStatus.completed 
+      final completionDate = newStatus == SaleStatus.completed
           ? DateTime.now()
           : null;
 
@@ -252,11 +296,7 @@ class SalesProvider extends ChangeNotifier {
   // Eliminar venta
   Future<bool> deleteSale(int saleId) async {
     try {
-      await _dbHelper.delete(
-        'sales',
-        where: 'id = ?',
-        whereArgs: [saleId],
-      );
+      await _dbHelper.delete('sales', where: 'id = ?', whereArgs: [saleId]);
 
       await loadSales();
       return true;

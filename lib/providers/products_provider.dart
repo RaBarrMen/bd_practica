@@ -12,24 +12,24 @@ class ProductsProvider extends ChangeNotifier {
   int? _selectedCategoryId;
 
   // Getters
-  List<Product> get products => _filteredProducts.isEmpty ? _products : _filteredProducts;
+  List<Product> get products =>
+      _filteredProducts.isEmpty ? _products : _filteredProducts;
   bool get isLoading => _isLoading;
   String? get error => _error;
   int? get selectedCategoryId => _selectedCategoryId;
 
   // Cargar todos los productos
   Future<void> loadProducts() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
+      _isLoading = true;
+
       final data = await _dbHelper.query('products', orderBy: 'name ASC');
+
       _products = data.map((map) => Product.fromMap(map)).toList();
       _filteredProducts = [];
+      _error = null;
     } catch (e) {
       _error = 'Error al cargar productos: $e';
-      print(_error);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -41,7 +41,6 @@ class ProductsProvider extends ChangeNotifier {
     _isLoading = true;
     _selectedCategoryId = categoryId;
     _error = null;
-    notifyListeners();
 
     try {
       final data = await _dbHelper.query(
@@ -161,16 +160,13 @@ class ProductsProvider extends ChangeNotifier {
       );
 
       if (saleDetails.isNotEmpty) {
-        _error = 'No se puede eliminar el producto porque tiene ventas asociadas';
+        _error =
+            'No se puede eliminar el producto porque tiene ventas asociadas';
         notifyListeners();
         return false;
       }
 
-      await _dbHelper.delete(
-        'products',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await _dbHelper.delete('products', where: 'id = ?', whereArgs: [id]);
 
       await loadProducts();
       return true;
