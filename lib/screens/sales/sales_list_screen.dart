@@ -135,6 +135,26 @@ class _SalesListScreenState extends State<SalesListScreen> {
                                         style: AppStyles.bodySmall,
                                       ),
                                       const SizedBox(
+                                        height: AppStyles.paddingXSmall,
+                                      ),
+                                      FutureBuilder<String>(
+                                        future: salesProvider
+                                            .getSaleProductsSummary(sale.id),
+                                        builder: (context, snapshot) {
+                                          final summary = snapshot.data;
+                                          if (summary == null ||
+                                              summary == 'Sin productos') {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return Text(
+                                            'Productos: $summary',
+                                            style: AppStyles.bodySmall.copyWith(
+                                              color: AppColors.primary,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      const SizedBox(
                                           height: AppStyles.paddingXSmall),
                                       StatusBadge(status: sale.status),
                                     ],
