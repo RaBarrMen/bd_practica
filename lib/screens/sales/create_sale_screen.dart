@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/sale.dart';
 import '../../providers/sales_provider.dart';
-import '../../providers/products_provider.dart';
 import '../../utils/colors.dart';
 import '../../constants/app_styles.dart';
+import 'categories_selection_screen.dart';
 
 class CreateSaleScreen extends StatefulWidget {
   const CreateSaleScreen({Key? key}) : super(key: key);
@@ -89,21 +89,20 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
           Navigator.pop(context); // Cerrar loading
 
           if (sale != null) {
-            // Éxito
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('✓ Venta guardada exitosamente'),
+              const SnackBar(
+                content: Text('✓ Venta creada, ahora agrega productos'),
                 backgroundColor: Colors.green,
-                duration: const Duration(seconds: 2),
+                duration: Duration(seconds: 2),
               ),
             );
 
-            // Volver a la pantalla anterior después de 1 segundo
-            Future.delayed(const Duration(seconds: 1), () {
-              if (mounted) {
-                Navigator.pop(context);
-              }
-            });
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CategoriesSelectionScreen(saleId: sale.id),
+              ),
+            );
           } else {
             // Error
             ScaffoldMessenger.of(context).showSnackBar(

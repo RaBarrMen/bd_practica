@@ -109,7 +109,7 @@ class _ProductsSelectionScreenState extends State<ProductsSelectionScreen> {
                                         top: AppStyles.paddingXSmall,
                                       ),
                                       child: Text(
-                                        'Stock: ${product.stock} ${product.unit ?? 'pcs'}',
+                                        'Stock: ${product.stock} ${product.unit ?? 'uds'}',
                                         style: AppStyles.bodySmall,
                                       ),
                                     ),

@@ -5,6 +5,7 @@ import 'providers/products_provider.dart';
 import 'providers/sales_provider.dart';
 import 'providers/cart_provider.dart';
 import 'screens/home_screen.dart';
+import 'screens/products/products_management_screen.dart';
 import 'utils/colors.dart';
 import 'constants/app_styles.dart';
 
@@ -71,6 +72,9 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
+        routes: {
+          '/products-management': (_) => const ProductsManagementScreen(),
+        },
         home: const HomeScreen(),
       ),
     );
