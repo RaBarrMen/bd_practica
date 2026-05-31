@@ -62,6 +62,49 @@ class SalesProvider extends ChangeNotifier {
     return _saleDetails[saleId] ?? [];
   }
 
+  Future<List<Map<String, dynamic>>> getSaleDetailsWithProductInfo(
+    int saleId,
+  ) async {
+    return await _dbHelper.rawQuery(
+      '''
+      SELECT
+        sd.id,
+        sd.sale_id,
+        sd.product_id,
+        sd.quantity,
+        sd.unit_price,
+        sd.subtotal,
+        p.name AS product_name
+      FROM sale_details sd
+      INNER JOIN products p ON p.id = sd.product_id
+      WHERE sd.sale_id = ?
+      ORDER BY sd.created_at ASC
+      ''',
+      [saleId],
+    );
+  }
+
+  Future<String> getSaleProductsSummary(int saleId) async {
+    try {
+      final details = await getSaleDetailsWithProductInfo(saleId);
+      if (details.isEmpty) return 'Sin productos';
+
+      final names = details
+          .map((detail) => detail['product_name'] as String? ?? 'Producto')
+          .toList();
+      final maxToShow = names.length > 2 ? 2 : names.length;
+      final preview = names.take(maxToShow).join(', ');
+      final extra = names.length - maxToShow;
+
+      if (extra > 0) {
+        return '$preview +$extra más';
+      }
+      return preview;
+    } catch (_) {
+      return 'Sin productos';
+    }
+  }
+
   // Filtrar por estatus
   void filterByStatus(SaleStatus? status) {
     _filterStatus = status;

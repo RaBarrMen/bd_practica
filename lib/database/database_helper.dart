@@ -81,6 +81,14 @@ class DatabaseHelper {
     );
   }
 
+  Future<List<Map<String, dynamic>>> rawQuery(
+    String sql, [
+    List<dynamic>? arguments,
+  ]) async {
+    final db = await database;
+    return await db.rawQuery(sql, arguments);
+  }
+
   Future<int> update(
     String table,
     Map<String, dynamic> values, {
