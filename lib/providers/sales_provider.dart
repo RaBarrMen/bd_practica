@@ -100,7 +100,10 @@ class SalesProvider extends ChangeNotifier {
         return '$preview +$extra más';
       }
       return preview;
-    } catch (_) {
+    } catch (e) {
+      debugPrint(
+        'Error al obtener resumen de productos para venta $saleId: $e',
+      );
       return 'Sin productos';
     }
   }

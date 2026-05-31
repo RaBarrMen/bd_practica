@@ -158,7 +158,7 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
                 actions: [
                   ElevatedButton(
                     onPressed: () => Navigator.pop(dialogContext),
-                    child: const Text('Ver detalle'),
+                    child: const Text('Continuar'),
                   ),
                 ],
               ),
@@ -719,6 +719,10 @@ class _CreateSaleScreenState extends State<CreateSaleScreen> {
           },
         );
       },
-    );
+    ).then((_) {
+      for (final controller in quantityControllers.values) {
+        controller.dispose();
+      }
+    });
   }
 }
