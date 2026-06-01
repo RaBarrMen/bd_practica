@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/sale.dart';
 import '../../providers/sales_provider.dart';
-import '../../models/sale.dart';
 import '../../utils/colors.dart';
 import '../../constants/app_styles.dart';
 import '../../widgets/status_badge.dart';
@@ -11,7 +10,10 @@ import '../../utils/date_utils.dart';
 class SaleDetailScreen extends StatelessWidget {
   final Sale sale;
 
-  const SaleDetailScreen({Key? key, required this.sale}) : super(key: key);
+  const SaleDetailScreen({
+    Key? key,
+    required this.sale,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,33 +24,36 @@ class SaleDetailScreen extends StatelessWidget {
       ),
       body: Consumer<SalesProvider>(
         builder: (context, salesProvider, _) {
-          final details = salesProvider.getSaleDetails(sale.id);
-
           return SingleChildScrollView(
             padding: const EdgeInsets.all(AppStyles.paddingMedium),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Información general
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(AppStyles.paddingMedium),
+                    padding: const EdgeInsets.all(
+                      AppStyles.paddingMedium,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     'Número de Venta',
                                     style: AppStyles.bodySmall,
                                   ),
                                   const SizedBox(
-                                      height: AppStyles.paddingXSmall),
+                                    height:
+                                        AppStyles.paddingXSmall,
+                                  ),
                                   Text(
                                     sale.saleNumber,
                                     style: AppStyles.labelLarge,
@@ -59,12 +64,16 @@ class SaleDetailScreen extends StatelessWidget {
                             StatusBadge(status: sale.status),
                           ],
                         ),
-                        const SizedBox(height: AppStyles.paddingMedium),
+                        const SizedBox(
+                          height: AppStyles.paddingMedium,
+                        ),
                         _buildDetailRow(
                           'Cliente:',
                           sale.clientName,
                         ),
-                        const SizedBox(height: AppStyles.paddingSmall),
+                        const SizedBox(
+                          height: AppStyles.paddingSmall,
+                        ),
                         if (sale.clientPhone != null)
                           Column(
                             children: [
@@ -72,7 +81,10 @@ class SaleDetailScreen extends StatelessWidget {
                                 'Teléfono:',
                                 sale.clientPhone!,
                               ),
-                              const SizedBox(height: AppStyles.paddingSmall),
+                              const SizedBox(
+                                height:
+                                    AppStyles.paddingSmall,
+                              ),
                             ],
                           ),
                         if (sale.clientEmail != null)
@@ -82,153 +94,291 @@ class SaleDetailScreen extends StatelessWidget {
                                 'Email:',
                                 sale.clientEmail!,
                               ),
-                              const SizedBox(height: AppStyles.paddingSmall),
+                              const SizedBox(
+                                height:
+                                    AppStyles.paddingSmall,
+                              ),
                             ],
                           ),
                         _buildDetailRow(
                           'Tipo:',
                           sale.saleType.label,
                         ),
-                        const SizedBox(height: AppStyles.paddingSmall),
+                        const SizedBox(
+                          height: AppStyles.paddingSmall,
+                        ),
                         _buildDetailRow(
                           'Fecha de Venta:',
-                          DateTimeUtils.formatDateWithTime(sale.saleDate),
+                          DateTimeUtils.formatDateWithTime(
+                            sale.saleDate,
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: AppStyles.paddingMedium),
-                // Detalles de items
+                const SizedBox(
+                  height: AppStyles.paddingMedium,
+                ),
                 Text(
                   'Artículos',
                   style: AppStyles.headlineSmall,
                 ),
-                const SizedBox(height: AppStyles.paddingSmall),
-                if (details.isEmpty)
-                  const Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppStyles.paddingMedium),
-                      child: Center(child: Text('Sin artículos')),
-                    ),
-                  )
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: details.length,
-                    itemBuilder: (context, index) {
-                      final detail = details[index];
-                      return Card(
-                        margin: const EdgeInsets.only(
-                          bottom: AppStyles.paddingSmall,
-                        ),
+                const SizedBox(
+                  height: AppStyles.paddingSmall,
+                ),
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: salesProvider
+                      .getSaleDetailsWithProductInfo(
+                    sale.id,
+                  ),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(
+                        child:
+                            CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (!snapshot.hasData ||
+                        snapshot.data!.isEmpty) {
+                      return const Card(
                         child: Padding(
-                          padding: const EdgeInsets.all(AppStyles.paddingMedium),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Producto ${index + 1}',
-                                style: AppStyles.labelLarge,
-                              ),
-                              const SizedBox(height: AppStyles.paddingSmall),
-                              _buildDetailRow(
-                                'Cantidad:',
-                                detail.quantity.toStringAsFixed(2),
-                              ),
-                              const SizedBox(height: AppStyles.paddingXSmall),
-                              _buildDetailRow(
-                                'Precio unitario:',
-                                '\$${detail.unitPrice.toStringAsFixed(2)}',
-                              ),
-                              const SizedBox(height: AppStyles.paddingXSmall),
-                              _buildDetailRow(
-                                'Subtotal:',
-                                '\$${detail.subtotal.toStringAsFixed(2)}',
-                              ),
-                            ],
+                          padding: EdgeInsets.all(
+                            AppStyles.paddingMedium,
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Sin artículos',
+                            ),
                           ),
                         ),
                       );
-                    },
-                  ),
-                const SizedBox(height: AppStyles.paddingMedium),
-                // Total
+                    }
+
+                    final items = snapshot.data!;
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics:
+                          const NeverScrollableScrollPhysics(),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+
+                        return Card(
+                          margin: const EdgeInsets.only(
+                            bottom:
+                                AppStyles.paddingSmall,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(
+                              AppStyles.paddingMedium,
+                            ),
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['product_name'] ??
+                                      'Producto',
+                                  style: AppStyles
+                                      .labelLarge
+                                      .copyWith(
+                                    fontWeight:
+                                        FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: AppStyles
+                                      .paddingSmall,
+                                ),
+                                _buildDetailRow(
+                                  'Cantidad:',
+                                  item['quantity']
+                                      .toString(),
+                                ),
+                                const SizedBox(
+                                  height: AppStyles
+                                      .paddingXSmall,
+                                ),
+                                _buildDetailRow(
+                                  'Precio unitario:',
+                                  '\$${(item['unit_price'] as num).toStringAsFixed(2)}',
+                                ),
+                                const SizedBox(
+                                  height: AppStyles
+                                      .paddingXSmall,
+                                ),
+                                _buildDetailRow(
+                                  'Subtotal:',
+                                  '\$${(item['subtotal'] as num).toStringAsFixed(2)}',
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(
+                  height: AppStyles.paddingMedium,
+                ),
                 Card(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color:
+                      AppColors.primary.withOpacity(0.1),
                   child: Padding(
-                    padding: const EdgeInsets.all(AppStyles.paddingMedium),
+                    padding: const EdgeInsets.all(
+                      AppStyles.paddingMedium,
+                    ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           'Total:',
-                          style: AppStyles.headlineSmall,
+                          style:
+                              AppStyles.headlineSmall,
                         ),
                         Text(
                           '\$${sale.totalAmount.toStringAsFixed(2)}',
-                          style: AppStyles.headlineSmall.copyWith(
+                          style: AppStyles
+                              .headlineSmall
+                              .copyWith(
                             color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
+                            fontWeight:
+                                FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: AppStyles.paddingMedium),
-                // Botones de acción
-                if (sale.status == SaleStatus.pending)
-                  Column(
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            salesProvider.updateSaleStatus(
-                              sale.id,
-                              SaleStatus.completed,
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
+                const SizedBox(
+                  height: AppStyles.paddingMedium,
+                ),
+                if (sale.status ==
+                    SaleStatus.pending)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        await salesProvider
+                            .updateSaleStatus(
+                          sale.id,
+                          SaleStatus.completed,
+                        );
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Venta marcada como completada',
+                              ),
+                            ),
+                          );
+                          Navigator.pop(context);
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.check_circle,
+                      ),
+                      label: const Text(
+                        'Marcar como Completada',
+                      ),
+                      style:
+                          ElevatedButton.styleFrom(
+                        backgroundColor: AppColors
+                            .statusCompleted,
+                      ),
+                    ),
+                  ),
+                if (sale.status ==
+                        SaleStatus.completed ||
+                    sale.status ==
+                        SaleStatus.cancelled)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: AppStyles.paddingSmall,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          await salesProvider
+                              .updateSaleStatus(
+                            sale.id,
+                            SaleStatus.pending,
+                          );
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(
+                                    context)
+                                .showSnackBar(
                               const SnackBar(
-                                content: Text('Venta marcada como completada'),
+                                content: Text(
+                                  'Venta reactivada',
+                                ),
                               ),
                             );
                             Navigator.pop(context);
-                          },
-                          icon: const Icon(Icons.check_circle),
-                          label: const Text('Marcar como Completada'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.statusCompleted,
-                          ),
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.restore,
+                        ),
+                        label: const Text(
+                          'Reactivar Venta',
                         ),
                       ),
-                      const SizedBox(height: AppStyles.paddingSmall),
-                    ],
-                  ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      salesProvider.updateSaleStatus(
-                        sale.id,
-                        SaleStatus.cancelled,
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Venta cancelada'),
-                        ),
-                      );
-                      Navigator.pop(context);
-                    },
-                    icon: const Icon(Icons.cancel),
-                    label: const Text('Cancelar Venta'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.statusCancelled,
                     ),
                   ),
-                ),
+                if (sale.status !=
+                    SaleStatus.cancelled)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: AppStyles.paddingSmall,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          await salesProvider
+                              .updateSaleStatus(
+                            sale.id,
+                            SaleStatus.cancelled,
+                          );
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(
+                                    context)
+                                .showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Venta cancelada',
+                                ),
+                              ),
+                            );
+                            Navigator.pop(context);
+                          }
+                        },
+                        icon:
+                            const Icon(Icons.cancel),
+                        label: const Text(
+                          'Cancelar Venta',
+                        ),
+                        style:
+                            ElevatedButton.styleFrom(
+                          backgroundColor:
+                              AppColors
+                                  .statusCancelled,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           );
@@ -237,12 +387,22 @@ class SaleDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(
+    String label,
+    String value,
+  ) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment:
+          MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppStyles.bodySmall),
-        Text(value, style: AppStyles.labelLarge),
+        Text(
+          label,
+          style: AppStyles.bodySmall,
+        ),
+        Text(
+          value,
+          style: AppStyles.labelLarge,
+        ),
       ],
     );
   }
